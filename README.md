@@ -19,7 +19,8 @@
 ``` <uses-permission android:name="android.permission.INTERNET" />```
 
 
-![可信ID.png](https://upload-images.jianshu.io/upload_images/1689923-e86bf26ced51d74f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![可信ID.png](https://upload-images.jianshu.io/upload_images/1689923-602a94b424380a6e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
 
 
 可信ID的获取过程：
