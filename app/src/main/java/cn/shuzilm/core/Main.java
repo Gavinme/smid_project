@@ -33,22 +33,19 @@ import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 
 public class Main extends PhoneStateListener {
-    private static final String a = "du";
-    private static final boolean b = true;
-    protected static final Main c = new Main();
-    private static final Lock d = new ReentrantLock();
+    private static final String soLib = "du";
+    protected static final Main instance = new Main();
+    private static final Lock LOCK = new ReentrantLock();
     private static final ReentrantReadWriteLock e = new ReentrantReadWriteLock();
-    static String g = null;
-    private static String h = null;
-    static final JSONObject i = new JSONObject();
-    static final JSONObject j = new JSONObject();
+    static String apiKeyValue = null;
+    static final JSONObject customJob = new JSONObject();
+    static final JSONObject keyJob = new JSONObject();
     private static JSONObject k = null;
-    private static final ThreadLocal l = new ThreadLocal();
-    private static Context m = null;
+    private static final ThreadLocal sThreadLocal = new ThreadLocal();
+    private static Context mContext = null;
     private static String n = null;
     private static JSONObject o = new JSONObject();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
-    private boolean f = false;
     private static final String SHU_ZI_LM_KEY =
             "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMUBVv"
                     + "+BdK8bzgV8iTEe25zWhQabmsC8RCo4TAMW79i6ReUymlcmAvTjxq5pxKFyfvRmdsdOL9RDEQlB+6Z/nP8CAwEAAQ==";
@@ -56,7 +53,7 @@ public class Main extends PhoneStateListener {
     private Main() {
     }
 
-    private String a(Context context, String str) {
+    private String readAssets(Context context, String str) {
         try {
             InputStream open = context.getAssets().open(str);
             StringBuffer stringBuffer = new StringBuffer();
@@ -87,11 +84,11 @@ public class Main extends PhoneStateListener {
         try {
             a("type", "2");
             a("pEventCode", str);
-            a("apiKey", g);
+            a("apiKey", apiKeyValue);
             if (str2 != null) {
                 a("mEventCode", str2);
             }
-            jSONObject = l.get() != null ? ((JSONObject) l.get()).toString() : null;
+            jSONObject = sThreadLocal.get() != null ? ((JSONObject) sThreadLocal.get()).toString() : null;
             synchronized(o) {
                 try {
                     String jSONObject2 = o.toString();
@@ -137,7 +134,7 @@ public class Main extends PhoneStateListener {
         return null;
     }
 
-    private void a(Context context, SensorManager sensorManager, Sensor sensor) {
+    private void registerSensorListener(Context context, SensorManager sensorManager, Sensor sensor) {
         sensorManager.registerListener(new d(this, context, sensorManager), sensor, 1);
     }
 
@@ -166,27 +163,13 @@ public class Main extends PhoneStateListener {
     public void a(Context context, JSONObject jSONObject, String str) throws JSONException {
         String str2;
         if (jSONObject.isNull("url")) {
-            str2 = (String) b(context, "url");
+            str2 = (String) setCfgFromAssets(context, "url");
             if (str2 != null) {
                 jSONObject.put("url", str2);
             }
         }
-        if (jSONObject.isNull("store")) {
-            Object d = null;
-            if (str == null) {
-                d = d(context);
-                if (d == null) {
-                    d = (String) b(context, "store");
-                }
-            } else {
-                str2 = str;
-            }
-            if (d != null) {
-                jSONObject.put("store", d);
-            }
-        }
         if (jSONObject.isNull("apiKey")) {
-            str2 = (String) b(context, "apiKey");
+            str2 = (String) setCfgFromAssets(context, "apiKey");
             if (str2 != null) {
                 jSONObject.put("apiKey", str2);
             }
@@ -195,14 +178,14 @@ public class Main extends PhoneStateListener {
 
     private void a(String str, String str2) {
         try {
-            JSONObject jSONObject = (JSONObject) l.get();
+            JSONObject jSONObject = (JSONObject) sThreadLocal.get();
             if (jSONObject != null) {
                 jSONObject.put(str, str2);
                 return;
             }
             jSONObject = new JSONObject();
             jSONObject.put(str, str2);
-            l.set(jSONObject);
+            sThreadLocal.set(jSONObject);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -219,7 +202,7 @@ public class Main extends PhoneStateListener {
         }
     }
 
-    private void a(JSONObject jSONObject, String str, String str2) throws JSONException {
+    private void setConfig(JSONObject jSONObject, String str, String str2) throws JSONException {
         jSONObject.put(str, str2);
     }
 
@@ -236,12 +219,12 @@ public class Main extends PhoneStateListener {
         return false;
     }
 
-    private Object b(Context context, String str) {
+    private Object setCfgFromAssets(Context context, String str) {
         Object obj = null;
         try {
             JSONObject jSONObject = k;
             if (jSONObject == null) {
-                jSONObject = c(context);
+                jSONObject = readAssetsJson(context);
                 k = jSONObject;
             }
             obj = jSONObject.opt(str);
@@ -250,16 +233,16 @@ public class Main extends PhoneStateListener {
         return obj;
     }
 
-    private String b(Context context) {
-        return a(context, "20171111_yy.jpg");
+    private String readAssets(Context context) {
+        return readAssets(context, "20171111_yy.jpg");
     }
 
-    String b(Context context, String str, String str2) {
+    String setCfgFromAssets(Context context, String str, String str2) {
         try {
-            setConfig("apiKey", g);
-            a(context, j, str);
-            b(i, str2);
-            return query(context, /**apk key*/j.toString(), i.toString());
+            setConfig("apiKey", apiKeyValue);//存储key到keyJob
+            a(context, keyJob, str);
+            setCustomConfig(customJob, str2);
+            return query(context, /**apk key*/keyJob.toString(), customJob.toString());
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -269,8 +252,8 @@ public class Main extends PhoneStateListener {
         }
     }
 
-    public void b(JSONObject jSONObject, String str) throws JSONException {
-        a(jSONObject, "custom", str);
+    public void setCustomConfig(JSONObject jSONObject, String str) throws JSONException {
+        setConfig(jSONObject, "custom", str);
     }
 
     private String c(Context context, String str) {
@@ -286,17 +269,17 @@ public class Main extends PhoneStateListener {
         return null;
     }
 
-    private JSONObject c(Context context) throws JSONException {
-        String a = a(context, "cn.shuzilm.config.json");
+    private JSONObject readAssetsJson(Context context) throws JSONException {
+        String a = readAssets(context, "cn.shuzilm.config.json");
         return a != null ? new JSONObject(a) : null;
     }
 
     private String d(Context context) {
         String str = null;
         try {
-            Object b = c.b(context, "store");
+            Object b = instance.setCfgFromAssets(context, "store");
             if (!(b instanceof String)) {
-                str = c.c(context, new JSONObject(b.toString()).getJSONObject("metadata").getString("name"));
+                str = instance.c(context, new JSONObject(b.toString()).getJSONObject("metadata").getString("name"));
             }
         } catch (Exception e) {
         }
@@ -308,27 +291,27 @@ public class Main extends PhoneStateListener {
         return sharedPreferences != null ? sharedPreferences.getString("device_id", null) : null;
     }
 
-    private void f(Context context) {
+    private void register(Context context) {
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        Sensor defaultSensor = sensorManager.getDefaultSensor(9);
+        Sensor defaultSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         if (defaultSensor != null) {
-            a(context, sensorManager, defaultSensor);
+            registerSensorListener(context, sensorManager, defaultSensor);
         }
         defaultSensor = sensorManager.getDefaultSensor(3);
         if (defaultSensor != null) {
-            a(context, sensorManager, defaultSensor);
+            registerSensorListener(context, sensorManager, defaultSensor);
         }
         defaultSensor = sensorManager.getDefaultSensor(11);
         if (defaultSensor != null) {
-            a(context, sensorManager, defaultSensor);
+            registerSensorListener(context, sensorManager, defaultSensor);
         }
         defaultSensor = sensorManager.getDefaultSensor(19);
         if (defaultSensor != null) {
-            a(context, sensorManager, defaultSensor);
+            registerSensorListener(context, sensorManager, defaultSensor);
         }
         defaultSensor = sensorManager.getDefaultSensor(6);
         if (defaultSensor != null) {
-            a(context, sensorManager, defaultSensor);
+            registerSensorListener(context, sensorManager, defaultSensor);
         }
     }
 
@@ -352,25 +335,25 @@ public class Main extends PhoneStateListener {
         Object obj = "0";
         Context applicationContext = context.getApplicationContext();
         if (i == 1) {
-            c.a(applicationContext, str, str2, listener);
+            instance.a(applicationContext, str, str2, listener);
             return null;
-        } else if (d.tryLock()) {
-            String b = c.b(applicationContext, str, str2);
+        } else if (LOCK.tryLock()) {
+            String b = instance.setCfgFromAssets(applicationContext, str, str2);
             if (b != null) {
                 n = b;
                 obj = "1";
             }
             if (b == null) {
-                b = n != null ? n : c.e(applicationContext);
+                b = n != null ? n : instance.e(applicationContext);
             }
             hashMap.put("device_id", b);
             hashMap.put("valid", obj);
-            d.unlock();
+            LOCK.unlock();
             return hashMap;
         } else {
-            String e = c.e(applicationContext);
+            String e = instance.e(applicationContext);
             if (e == null) {
-                c.a(applicationContext, str, str2, listener);
+                instance.a(applicationContext, str, str2, listener);
             }
             hashMap.put("device_id", e);
             hashMap.put("valid", obj);
@@ -384,18 +367,13 @@ public class Main extends PhoneStateListener {
      * @param context
      */
     public static void init(Context context) {
-        m = context.getApplicationContext();
+        mContext = context.getApplicationContext();
         try {
-            g = SHU_ZI_LM_KEY;
-            System.loadLibrary(a);
-            ((TelephonyManager) m.getSystemService(Context.TELEPHONY_SERVICE)).listen(c, 256);
-            String b = c.b(context);
-            if (b != null) {
-                h = b;
-                setConfig("inner", b);
-            }
-            c.f(context);
-            c.f = true;
+            apiKeyValue = SHU_ZI_LM_KEY;
+            System.loadLibrary(soLib);
+            ((TelephonyManager) mContext
+                    .getSystemService(Context.TELEPHONY_SERVICE)).listen(instance, LISTEN_SIGNAL_STRENGTHS);
+            instance.register(context);
         } catch (Exception e) {
             e.printStackTrace();
         } catch (UnsatisfiedLinkError e2) {
@@ -410,38 +388,38 @@ public class Main extends PhoneStateListener {
         }
         Context applicationContext = context.getApplicationContext();
         if (i == 1) {
-            c.a(applicationContext, str, str2, str3, listener);
+            instance.a(applicationContext, str, str2, str3, listener);
             return null;
-        } else if (d.tryLock()) {
-            hashMap.put("SessionID", c.a(applicationContext, str, str2, str3));
+        } else if (LOCK.tryLock()) {
+            hashMap.put("SessionID", instance.a(applicationContext, str, str2, str3));
             hashMap.put("QueryID", n);
-            d.unlock();
+            LOCK.unlock();
             return hashMap;
         } else {
-            c.a(applicationContext, str, str2, str3, listener);
+            instance.a(applicationContext, str, str2, str3, listener);
             return null;
         }
     }
 
     public static int setConfig(String str, String str2) throws JSONException {
-        c.a(j, str, str2);
+        instance.setConfig(keyJob, str, str2);
         return 0;
     }
 
     public static int setData(String str, String str2) throws JSONException {
-        c.a(i, str, str2);
+        instance.setConfig(customJob, str, str2);
         return 0;
     }
 
     public static int unResListener() {
-        ((TelephonyManager) m.getSystemService(Context.TELEPHONY_SERVICE)).listen(c, 0);
+        ((TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE)).listen(instance, 0);
         return 0;
     }
 
     @Override
     public void onSignalStrengthsChanged(SignalStrength signalStrength) {
         try {
-            onSSChanged(m, signalStrength);
+            onSSChanged(mContext, signalStrength);
         } catch (UnsatisfiedLinkError e) {
             e.printStackTrace();
         }

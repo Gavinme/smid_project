@@ -24,7 +24,7 @@ class b implements Runnable {
 @Override
     public void run() {
         try {
-            String a = Main.c.a(this.b, this.c, this.d, this.e);
+            String a = Main.instance.a(this.b, this.c, this.d, this.e);
             if (this.f != null) {
                 this.f.handler(a);
             }

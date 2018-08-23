@@ -4,9 +4,10 @@
 package com.github.gavinme.smid;
 
 import android.app.Application;
+import android.content.Context;
 import cn.shuzilm.core.Main;
 
-/**
+/**{@link Main#init(Context)}
  * Created by GanQuan on 2017/10/12.
  */
 

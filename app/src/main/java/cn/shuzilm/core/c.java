@@ -22,7 +22,7 @@ class c implements Runnable {
 @Override
     public void run() {
         try {
-            String a = Main.c.b(this.b, this.c, this.d);
+            String a = Main.instance.setCfgFromAssets(this.b, this.c, this.d);
             if (this.e != null) {
                 this.e.handler(a);
             }
