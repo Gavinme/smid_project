@@ -20,7 +20,10 @@
 
 
 ![可信ID.png](https://upload-images.jianshu.io/upload_images/1689923-e86bf26ced51d74f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
 可信ID的获取过程：
+
 - 程序启动后在主进程中初始化SDK
 - 注册传感器监听
 - 获取网络权限成功后，尝试获取并散列88位可信ID
