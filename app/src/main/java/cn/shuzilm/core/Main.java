@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
@@ -30,11 +31,8 @@ import android.net.NetworkInfo.State;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 public class Main extends PhoneStateListener {
-    public static final int MAIN_DU_ASYNCHRONOUS = 1;
-    public static final int MAIN_DU_SYNCHRONOUS = 0;
     private static final String a = "du";
     private static final boolean b = true;
     protected static final Main c = new Main();
@@ -51,6 +49,9 @@ public class Main extends PhoneStateListener {
     private static JSONObject o = new JSONObject();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
     private boolean f = false;
+    private static final String SHU_ZI_LM_KEY =
+            "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMUBVv"
+                    + "+BdK8bzgV8iTEe25zWhQabmsC8RCo4TAMW79i6ReUymlcmAvTjxq5pxKFyfvRmdsdOL9RDEQlB+6Z/nP8CAwEAAQ==";
 
     private Main() {
     }
@@ -274,8 +275,9 @@ public class Main extends PhoneStateListener {
 
     private String c(Context context, String str) {
         try {
-            Object obj =
-                    context.getPackageManager().getApplicationInfo(context.getPackageName(), 128).metaData.get(str);
+            Object obj = context.getPackageManager()
+                    .getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA)
+                    .metaData.get(str);
             if (obj != null) {
                 return obj.toString();
             }
@@ -307,7 +309,7 @@ public class Main extends PhoneStateListener {
     }
 
     private void f(Context context) {
-        SensorManager sensorManager = (SensorManager) context.getSystemService("sensor");
+        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor defaultSensor = sensorManager.getDefaultSensor(9);
         if (defaultSensor != null) {
             a(context, sensorManager, defaultSensor);
@@ -328,6 +330,17 @@ public class Main extends PhoneStateListener {
         if (defaultSensor != null) {
             a(context, sensorManager, defaultSensor);
         }
+    }
+
+    /**
+     * 获取设备的唯一id
+     *
+     * @param context
+     *
+     * @return
+     */
+    public static String getQueryID(Context context) {
+        return (String) getQueryID(context, null, null, 0, null).get("device_id");
     }
 
     public static String getQueryID(Context context, String str, String str2) {
@@ -365,29 +378,15 @@ public class Main extends PhoneStateListener {
         }
     }
 
-    public static void go(Context context, String str, String str2) {
-        Context applicationContext = context.getApplicationContext();
-        if (!c.a(applicationContext)) {
-            Log.e("[MAIN DU]", "network is unavailable.");
-        } else if (d.tryLock()) {
-            try {
-                EXECUTOR_SERVICE.execute(new a(applicationContext, str, str2));
-            } catch (Exception e) {
-            }
-            d.unlock();
-        }
-    }
-
     /**
      * 需要在主进程中调用
      *
      * @param context
-     * @param str
      */
-    public static void init(Context context, String str) {
+    public static void init(Context context) {
         m = context.getApplicationContext();
         try {
-            g = str;
+            g = SHU_ZI_LM_KEY;
             System.loadLibrary(a);
             ((TelephonyManager) m.getSystemService(Context.TELEPHONY_SERVICE)).listen(c, 256);
             String b = c.b(context);
@@ -403,8 +402,6 @@ public class Main extends PhoneStateListener {
             e2.printStackTrace();
         }
     }
-
-    public static native String onEvent(Context context, String str, String str2, String str3);
 
     public static Map onEvent(Context context, String str, String str2, String str3, int i, Listener listener) {
         Map hashMap = new HashMap();
@@ -425,14 +422,6 @@ public class Main extends PhoneStateListener {
             return null;
         }
     }
-
-    public static native void onSSChanged(Context context, SignalStrength signalStrength);
-
-    public static native void onSensorChanged(Context context, SensorEvent sensorEvent);
-
-    public static native String query(Context context, String str, String str2);
-
-    public static native String run(Context context, String str, String str2);
 
     public static int setConfig(String str, String str2) throws JSONException {
         c.a(j, str, str2);
@@ -457,4 +446,14 @@ public class Main extends PhoneStateListener {
             e.printStackTrace();
         }
     }
+
+    public static native String onEvent(Context context, String str, String str2, String str3);
+
+    public static native void onSSChanged(Context context, SignalStrength signalStrength);
+
+    public static native void onSensorChanged(Context context, SensorEvent sensorEvent);
+
+    public static native String query(Context context, String str, String str2);
+
+    public static native String run(Context context, String str, String str2);
 }

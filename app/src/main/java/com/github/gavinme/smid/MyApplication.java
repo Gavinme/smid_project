@@ -11,14 +11,11 @@ import cn.shuzilm.core.Main;
  */
 
 public class MyApplication extends Application {
-    private static final String SHU_ZI_LM_KEY =
-            "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAMUBVv"
-                    + "+BdK8bzgV8iTEe25zWhQabmsC8RCo4TAMW79i6ReUymlcmAvTjxq5pxKFyfvRmdsdOL9RDEQlB+6Z/nP8CAwEAAQ==";
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Main.init(this, SHU_ZI_LM_KEY);
+        Main.init(this);
     }
 
 }
